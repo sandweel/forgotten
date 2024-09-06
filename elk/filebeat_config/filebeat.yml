@@ -1,0 +1,218 @@
+############################# Filebeat #####################################
+filebeat.config.modules:
+  enabled: true
+  path: ${path.config}/modules.d/*.yml
+
+filebeat.inputs:
+
+### Magento 2 system.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/system.log
+  fields:
+    type: system.log
+    application: myproject
+    environment: production
+    log_type: system.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*\]'
+  multiline.negate: true
+  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+### Magento 2 reports
+- type: log
+  paths:
+    - /path/to/public_html/var/report/*
+  symlinks: true
+  fields:
+    type: magento_report
+    application: myproject
+    environment: production
+    log_type: report
+  fields_under_root: true
+#  multiline.pattern: '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}]'
+#  multiline.negate: true
+#  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 tokenbase.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/tokenbase.log
+  fields:
+    type: magento_standard
+    application: myproject
+    environment: production
+    log_type: tokenbase.log
+  fields_under_root: true
+  encoding: utf-8
+  ignore_older: 5m
+
+### Magento 2 exception.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/exception.log
+  fields:
+    type: exception.log
+    application: myproject
+    environment: production
+    log_type: exception.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*\]'
+  multiline.negate: true
+  multiline.match: after
+
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 payment.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/payment.log
+  fields:
+    type: payment.log
+    application: myproject
+    environment: production
+    log_type: payment.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*?\]'
+  multiline.negate: true
+  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 paywithamazon.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/paywithamazon.log
+  fields:
+    type: paywithamazon.log
+    application: myproject
+    environment: production
+    log_type: paywithamazon.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*?\]'
+  multiline.negate: true
+  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 stripe_payments_webhooks.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/stripe_payments_webhooks.log
+  fields:
+    type: stripe_payments_webhooks.log
+    application: myproject
+    environment: production
+    log_type: stripe_payments_webhooks.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*?\]'
+  multiline.negate: true
+  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 afterpay.log
+- type: log
+  paths:
+    - /path/to/public_html/var/log/afterpay.log
+  fields:
+    type: afterpay.log
+    application: myproject
+    environment: production
+    log_type: afterpay.log
+  fields_under_root: true
+  multiline.pattern: '^\[.*?\]'
+  multiline.negate: true
+  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### Magento 2 reports
+- type: log
+  paths:
+    - /home/forge/myproject.com/builds/backend/var/report/*
+  symlinks: true
+  fields:
+    type: magento_report
+    application: myproject
+    environment: production
+    log_type: backend-report
+  fields_under_root: true
+#  multiline.pattern: '^\[[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}]'
+#  multiline.negate: true
+#  multiline.match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+
+### Nginx access
+- type: log
+  paths:
+    - /var/log/nginx/myproject.com-access.log
+  fields:
+    type: nginx_access
+    application: myproject
+    environment: production
+    log_type: access
+  fields_under_root: true
+  encoding: utf-8
+  ignore_older: 5m
+
+### Nginx error
+- type: log
+  paths:
+    - /var/log/nginx/myproject.com-error.log
+  fields:
+    type: nginx_error
+    application: myproject
+    environment: production
+    log_type: error
+  fields_under_root: true
+  multiline:
+    pattern: '^^[0-9]{4}\/[0-9]{2}\/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}'
+    negate: true
+    match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+
+### MySQL slow log
+- type: log
+  paths:
+    - /var/log/mysql/mysql-slow.log
+  fields:
+    type: mysql_slowlog
+    application: myproject
+    environment: production
+    log_type: mysql_slowlog
+  fields_under_root: true
+  multiline:
+    pattern: '^# Time: (\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2}).(\d{6})?Z'
+    negate: true
+    match: after
+  encoding: utf-8
+  ignore_older: 5m
+
+name: "myproject.com"
+registry_file: /var/lib/filebeat/registry
+
+############################# Output ##########################################
+
+output:
+  logstash:
+    hosts: ["hostname:5044"]
+#    index: "myproject"
+#    username: elastic
+#    password: gU6eZRv72n3vUWxywjVX
