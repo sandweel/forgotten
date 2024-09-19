@@ -1,0 +1,82 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /opt/promtail/positions.yaml
+
+clients:
+- url: http://loki-endpoing:3100/loki/api/v1/push
+#- url: http://nginx-reverse/logs
+
+scrape_configs:
+- job_name: magento_exception_log
+  pipeline_stages:
+  - multiline:
+      firstline: '\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2})\]'
+      max_wait_time: 5s
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: exception
+      brand: mybrand
+      service: magento
+      __path__: /path/to/var/log/exception.log
+
+
+- job_name: magento_system_log
+  pipeline_stages:
+  - multiline:
+      firstline: '\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2})\]'
+      max_wait_time: 5s
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: system
+      brand: mybrand
+      service: magento
+      __path__: /path/to/var/log/system.log
+
+
+- job_name: magento_report
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: report
+      brand: mybrand
+      service: magento
+      __path__: /path/to/var/report/*
+
+
+- job_name: web_access
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: web_access
+      brand: mybrand
+      service: nginx
+      __path__: /var/log/nginx/mybrand-access.log
+
+- job_name: web_error
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: web_error
+      brand: mybrand
+      service: nginx
+      __path__: /var/log/nginx/mybrand-error.log
+
+- job_name: phpfpm
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      log_type: phpfpm
+      brand: mybrand
+      service: phpfpm
+      __path__: /var/log/php-fpm.log
