@@ -20,6 +20,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: exception
       brand: mybrand
       service: magento
@@ -35,6 +36,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: system
       brand: mybrand
       service: magento
@@ -46,6 +48,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: report
       brand: mybrand
       service: magento
@@ -57,6 +60,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: web_access
       brand: mybrand
       service: nginx
@@ -67,6 +71,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: web_error
       brand: mybrand
       service: nginx
@@ -77,6 +82,7 @@ scrape_configs:
   - targets:
       - localhost
     labels:
+      engine: magento
       log_type: phpfpm
       brand: mybrand
       service: phpfpm
