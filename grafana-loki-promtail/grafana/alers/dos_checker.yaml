@@ -1,0 +1,143 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 5m
+      folder: Alerts/DoS
+      interval: 5m
+      rules:
+        - uid: ddzkmp086l4hse
+          title: Check DoS by IP
+          condition: Status
+          data:
+            - refId: IP
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                editorMode: code
+                expr: "  topk(100,(\n    sum by(ip, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )))"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: IP
+            - refId: Total
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                datasource:
+                    type: loki
+                    uid: edxo57yiliw3ke
+                editorMode: code
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: Total
+            - refId: Status
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $IP / $Total * 100 > 70
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: Status
+                type: math
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          isPaused: false
+          notification_settings:
+            receiver: slack-aws-alerts
+        - uid: adznh220x3y0wc
+          title: Check DoS by User-agent
+          condition: Status
+          data:
+            - refId: IP
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                editorMode: code
+                expr: "  topk(100,(\n    sum by(user_agent, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )))"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: IP
+            - refId: Total
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                datasource:
+                    type: loki
+                    uid: edxo57yiliw3ke
+                editorMode: code
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: Total
+            - refId: Status
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $IP / $Total * 100 > 70
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: Status
+                type: math
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          isPaused: false
+          notification_settings:
+            receiver: slack-aws-alerts

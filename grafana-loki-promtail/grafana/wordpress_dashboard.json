@@ -82,6 +82,7 @@
         "type": "loki",
         "uid": "${DS_LOKI}"
       },
+      "description": "",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -184,7 +185,7 @@
             "uid": "${DS_LOKI}"
           },
           "editorMode": "code",
-          "expr": "sort_desc(topk(10, sum(count_over_time({log_type=\"web_access\", brand=\"$brand\"} | pattern `<ip> - - [<time> <zone>]<_>\"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` [$__range])) by ($AggregateBy)))",
+          "expr": "sort_desc(topk(10, sum(count_over_time({log_type=\"web_access\", brand=\"$brand\"} | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` | status_code!=\"403\" [$__range])) by ($AggregateBy)))",
           "hide": false,
           "queryType": "instant",
           "refId": "A"
@@ -250,14 +251,14 @@
         "overrides": [
           {
             "matcher": {
-              "id": "byName",
-              "options": "{status=\"500\"}"
+              "id": "byRegexp",
+              "options": "\\{status=\"5\\d{2}\"\\}"
             },
             "properties": [
               {
                 "id": "color",
                 "value": {
-                  "fixedColor": "#C4162A",
+                  "fixedColor": "dark-red",
                   "mode": "fixed"
                 }
               }
@@ -291,7 +292,7 @@
             "uid": "${DS_LOKI}"
           },
           "editorMode": "code",
-          "expr": "sum(count_over_time({log_type=\"web_access\"} | pattern `<_> - - <_> \"<method> <_> <_>\" <status> <_> <_> \"<_>\" <_>` [1m])) by (status)",
+          "expr": "sum by (status) (count_over_time({log_type=\"web_access\", brand=\"$brand\"} | pattern `<_> <_> <_> <_> \"<_> <_> <_>\" <status> <_> <_> \"<_>\" <_>` [1m]))",
           "queryType": "range",
           "refId": "A"
         }
@@ -418,92 +419,16 @@
             "h": 9,
             "w": 24,
             "x": 0,
-            "y": 17
+            "y": 22
           },
           "id": 1,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": false,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": false,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "${DS_LOKI}"
-              },
-              "editorMode": "code",
-              "expr": "{log_type=\"exception\", brand=\"$brand\"} |~ \"(?i)$search\"",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "Exception log",
-          "type": "logs"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 26
-          },
-          "id": 2,
-          "options": {
-            "dedupStrategy": "none",
-            "enableLogDetails": false,
-            "prettifyLogMessage": false,
-            "showCommonLabels": false,
-            "showLabels": false,
-            "showTime": false,
-            "sortOrder": "Descending",
-            "wrapLogMessage": true
-          },
-          "targets": [
-            {
-              "datasource": {
-                "type": "loki",
-                "uid": "${DS_LOKI}"
-              },
-              "direction": "backward",
-              "editorMode": "code",
-              "expr": "{log_type=\"system\", brand=\"$brand\"} |~ \"(?i)$search\"",
-              "legendFormat": "",
-              "queryType": "range",
-              "refId": "A"
-            }
-          ],
-          "title": "System log",
-          "type": "logs"
-        },
-        {
-          "datasource": {
-            "type": "loki",
-            "uid": "${DS_LOKI}"
-          },
-          "gridPos": {
-            "h": 9,
-            "w": 24,
-            "x": 0,
-            "y": 35
-          },
-          "id": 6,
           "options": {
             "dedupStrategy": "none",
             "enableLogDetails": true,
             "prettifyLogMessage": false,
             "showCommonLabels": false,
             "showLabels": false,
-            "showTime": true,
+            "showTime": false,
             "sortOrder": "Descending",
             "wrapLogMessage": true
           },
@@ -513,19 +438,17 @@
                 "type": "loki",
                 "uid": "${DS_LOKI}"
               },
-              "direction": "backward",
               "editorMode": "code",
-              "expr": "{log_type=\"report\", brand=\"$brand\"} |~ \"(?i)$search\" | json | line_format \"{{.report_id}}\"",
-              "legendFormat": "",
+              "expr": "{log_type=\"wc-logs\", brand=\"$brand\"} |~ \"(?i)$search\" !~ `((?i)$exclude)`",
               "queryType": "range",
               "refId": "A"
             }
           ],
-          "title": "Magento reports",
+          "title": "WC logs",
           "type": "logs"
         }
       ],
-      "title": "Magento Logs",
+      "title": "Wordpress Logs",
       "type": "row"
     },
     {
@@ -547,7 +470,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 3
+            "y": 32
           },
           "id": 10,
           "options": {
@@ -568,7 +491,7 @@
               },
               "direction": "backward",
               "editorMode": "code",
-              "expr": "{log_type=\"web_access\", brand=\"$brand\"} |~ `(?i)$search`",
+              "expr": "{log_type=\"web_access\", brand=\"$brand\"} |~ `(?i)$search` !~ `((?i)$exclude)`",
               "queryType": "range",
               "refId": "A"
             }
@@ -585,7 +508,7 @@
             "h": 8,
             "w": 24,
             "x": 0,
-            "y": 11
+            "y": 40
           },
           "id": 5,
           "options": {
@@ -605,12 +528,49 @@
                 "uid": "${DS_LOKI}"
               },
               "editorMode": "code",
-              "expr": "{log_type=\"web_error\", brand=\"$brand\"} |~ \"(?i)$search\"",
+              "expr": "{log_type=\"web_error\", brand=\"$brand\"} |~ \"(?i)$search\" !~ `((?i)$exclude)`",
               "queryType": "range",
               "refId": "A"
             }
           ],
           "title": "HTTP Errors",
+          "type": "logs"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${DS_LOKI}"
+          },
+          "gridPos": {
+            "h": 8,
+            "w": 24,
+            "x": 0,
+            "y": 48
+          },
+          "id": 12,
+          "options": {
+            "dedupStrategy": "none",
+            "enableLogDetails": false,
+            "prettifyLogMessage": false,
+            "showCommonLabels": false,
+            "showLabels": false,
+            "showTime": false,
+            "sortOrder": "Descending",
+            "wrapLogMessage": true
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${DS_LOKI}"
+              },
+              "editorMode": "code",
+              "expr": "{log_type=\"phpfpm\", brand=\"$brand\"} |~ \"(?i)$search\" !~ `((?i)$exclude)`",
+              "queryType": "range",
+              "refId": "A"
+            }
+          ],
+          "title": "PHP-FPM logs",
           "type": "logs"
         }
       ],
@@ -638,7 +598,7 @@
         "query": {
           "label": "brand",
           "refId": "LokiVariableQueryEditor-VariableQuery",
-          "stream": "{brand=~\".+\"}",
+          "stream": "{engine=\"wordpress\", brand=~\".+\"}",
           "type": 1
         },
         "refresh": 1,
@@ -664,6 +624,26 @@
           }
         ],
         "query": "",
+        "skipUrlSync": false,
+        "type": "textbox"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Exclude: info or INFO|warning",
+          "value": "Exclude: info or INFO|warning"
+        },
+        "hide": 0,
+        "label": "exclude",
+        "name": "exclude",
+        "options": [
+          {
+            "selected": true,
+            "text": "Exclude: info or INFO|warning",
+            "value": "Exclude: info or INFO|warning"
+          }
+        ],
+        "query": "Exclude: info or INFO|warning",
         "skipUrlSync": false,
         "type": "textbox"
       },
@@ -723,9 +703,8 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Template",
-  "uid": "bdxoafl20koaob",
-  "version": 34,
-  "weekStart": "",
-  "gnetId": 21932
+  "title": "Wordpress",
+  "uid": "edyr6c7nm1hc0c",
+  "version": 10,
+  "weekStart": ""
 }
