@@ -6,7 +6,7 @@ groups:
       interval: 5m
       rules:
         - uid: ddzkmp086l4hse
-          title: Check DoS by IP
+          title: Potential DoS by IP
           condition: Status
           data:
             - refId: IP
@@ -17,7 +17,7 @@ groups:
               datasourceUid: edxo57yiliw3ke
               model:
                 editorMode: code
-                expr: "  topk(100,(\n    sum by(ip, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )))"
+                expr: "  topk(100,(\n    sum by(ip, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [5m]\n    )\n  )))"
                 intervalMs: 1000
                 maxDataPoints: 43200
                 queryType: instant
@@ -33,7 +33,7 @@ groups:
                     type: loki
                     uid: edxo57yiliw3ke
                 editorMode: code
-                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )"
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [5m]\n    )\n  )"
                 intervalMs: 1000
                 maxDataPoints: 43200
                 queryType: instant
@@ -62,7 +62,7 @@ groups:
                     name: Expression
                     type: __expr__
                     uid: __expr__
-                expression: $IP / $Total * 100 > 70
+                expression: $IP > 2000 && $IP / $Total * 100 > 70
                 intervalMs: 1000
                 maxDataPoints: 43200
                 refId: Status
@@ -70,14 +70,20 @@ groups:
           noDataState: NoData
           execErrState: Error
           for: 5m
-          isPaused: false
+          annotations:
+            description: ""
+            runbook_url: ""
+            summary: ""
+          labels:
+            "": ""
+          isPaused: true
           notification_settings:
-            receiver: slack-aws-alerts
+            receiver: grafana-default-email
         - uid: adznh220x3y0wc
-          title: Check DoS by User-agent
+          title: Potential DoS by User-agent
           condition: Status
           data:
-            - refId: IP
+            - refId: useragent
               queryType: instant
               relativeTimeRange:
                 from: 600
@@ -85,11 +91,11 @@ groups:
               datasourceUid: edxo57yiliw3ke
               model:
                 editorMode: code
-                expr: "  topk(100,(\n    sum by(user_agent, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )))"
+                expr: "  topk(100,(\n    sum by(user_agent, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      AND user_agent !~ \".*(Googlebot/2.1|bingbot/2.0|GPTBot/1.2|RestSharp/106.15.0.0|AfterShip Magento-2 Connector).*\"\n      [10m]\n    )\n  )))"
                 intervalMs: 1000
                 maxDataPoints: 43200
                 queryType: instant
-                refId: IP
+                refId: useragent
             - refId: Total
               queryType: instant
               relativeTimeRange:
@@ -101,7 +107,7 @@ groups:
                     type: loki
                     uid: edxo57yiliw3ke
                 editorMode: code
-                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [10m]\n    )\n  )"
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      AND user_agent !~ \".*(Googlebot/2.1|bingbot/2.0|GPTBot/1.2|RestSharp/106.15.0.0|AfterShip Magento-2 Connector).*\"\n      [10m]\n    )\n  )"
                 intervalMs: 1000
                 maxDataPoints: 43200
                 queryType: instant
@@ -130,7 +136,7 @@ groups:
                     name: Expression
                     type: __expr__
                     uid: __expr__
-                expression: $IP / $Total * 100 > 70
+                expression: ${useragent} > 1000 && ${useragent} / $Total * 100 > 70
                 intervalMs: 1000
                 maxDataPoints: 43200
                 refId: Status
@@ -138,6 +144,88 @@ groups:
           noDataState: NoData
           execErrState: Error
           for: 5m
-          isPaused: false
+          isPaused: true
           notification_settings:
             receiver: slack-aws-alerts
+        - uid: ce04xmswxiygwa
+          title: test
+          condition: C
+          data:
+            - refId: IP
+              queryType: instant
+              relativeTimeRange:
+                from: 300
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                editorMode: code
+                expr: "sum by(ip, brand) (\r\n  count_over_time(\r\n    {log_type=\"web_access\"} \r\n    | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"`\r\n    | status_code != \"403\"\r\n    [5m]\r\n  )\r\n)\r\n"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: IP
+            - refId: B
+              relativeTimeRange:
+                from: 300
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params: []
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - B
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: IP
+                intervalMs: 1000
+                maxDataPoints: 43200
+                reducer: last
+                refId: B
+                type: reduce
+            - refId: C
+              relativeTimeRange:
+                from: 300
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 3000
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: B
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          annotations:
+            description: The IP address {{ $labels.ip }} targeting brand {{ $labels.brand }} has made more than N requests in the last N minutes.
+            summary: Potential DDoS attack detected from IP {{ $labels.ip }}
+          isPaused: false
+          notification_settings:
+            receiver: grafana-default-email

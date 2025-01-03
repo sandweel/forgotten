@@ -1,0 +1,84 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 1m
+      folder: Alerts/HTTP codes
+      interval: 1m
+      rules:
+        - uid: ce4m3oclc9tz4e
+          title: Detect 5** HTTP codes
+          condition: A
+          data:
+            - refId: "500"
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                datasource:
+                    type: loki
+                    uid: edxo57yiliw3ke
+                editorMode: code
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code =~ \"5[0-9][0-9]\"\n      [1m]\n    )\n  )"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: "500"
+            - refId: Total
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                datasource:
+                    type: loki
+                    uid: edxo57yiliw3ke
+                editorMode: code
+                expr: "    sum by(brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\"\n      [1m]\n    )\n  )"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: Total
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $500 / $Total * 100 > 5
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+                type: math
+          noDataState: OK
+          execErrState: OK
+          for: 1m
+          annotations:
+            description: ""
+            runbook_url: ""
+            summary: ""
+          labels:
+            "": ""
+          isPaused: false
+          notification_settings:
+            receiver: grafana-default-email

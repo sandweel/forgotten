@@ -66,6 +66,18 @@ scrape_configs:
       service: nginx
       __path__: /var/log/nginx/mybrand-access.log
 
+- job_name: web_post
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      engine: magento
+      log_type: web_post
+      brand: mybrand
+      service: nginx
+      __path__: /var/log/nginx/mybrand-post.log
+
+
 - job_name: web_error
   static_configs:
   - targets:

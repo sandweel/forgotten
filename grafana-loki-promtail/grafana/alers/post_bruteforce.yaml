@@ -1,0 +1,114 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: 30s
+      folder: Alerts/Bruteforce
+      interval: 30s
+      rules:
+        - uid: fe6hkxzmtf2m8b
+          title: Potential POST bruteforce by IP
+          condition: A
+          data:
+            - refId: IP
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                editorMode: code
+                expr: "  topk(100,(\n    sum by(ip, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\" | method = \"POST\"\n      [30s]\n    )\n  )))"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: IP
+            - refId: A
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $IP > 30
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+                type: math
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          annotations:
+            description: ""
+            runbook_url: ""
+            summary: ""
+          labels:
+            "": ""
+          isPaused: false
+          notification_settings:
+            receiver: grafana-default-email
+        - uid: ce6hl1ip5z2f4e
+          title: Potential POST bruteforce by User-agent
+          condition: A
+          data:
+            - refId: useragent
+              queryType: instant
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: edxo57yiliw3ke
+              model:
+                editorMode: code
+                expr: "  topk(100,(\n    sum by(ip, brand) (\n    count_over_time(\n      {log_type=\"web_access\"} \n      | pattern `<ip> <_> <_> [<time> <zone>] \"<method> <request_uri> <http_version>\" <status_code> <bytes> \"<referrer>\" \"<user_agent>\"` \n      | status_code != \"403\" | method = \"POST\"\n      [30s]\n    )\n  )))"
+                intervalMs: 1000
+                maxDataPoints: 43200
+                queryType: instant
+                refId: useragent
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params: []
+                      reducer:
+                        params: []
+                        type: avg
+                      type: query
+                datasource:
+                    name: Expression
+                    type: __expr__
+                    uid: __expr__
+                expression: $useragent > 30
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: A
+                type: math
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          isPaused: true
+          notification_settings:
+            receiver: slack-aws-alerts
